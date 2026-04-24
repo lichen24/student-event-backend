@@ -72,3 +72,20 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
+
+export const getMe = async (req: any, res: Response) => {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { id: req.user.userId },
+      select: {
+        id: true,
+        email: true,
+        role: true,
+      },
+    });
+
+    res.json(user);
+  } catch (error) {
+    res.status(500).json({ message: "Failed to get profile" });
+  }
+};
