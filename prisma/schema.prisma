@@ -21,10 +21,14 @@ model User {
 }
 
 model Event {
-  id          Int      @id @default(autoincrement())
-  title       String
-  description String
-  date        DateTime
+  id            Int           @id @default(autoincrement())
+  name          String
+  date          DateTime
+  location      String
+  description   String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
   registrations Registration[]
 }
 
