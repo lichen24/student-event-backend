@@ -1,87 +1,105 @@
 # Bugs Found During Testing
 
-## BUG-001: Missing auth.routes.ts file
-- **Severity**: Medium-High
-- **Found by**: Senja (Member C)
-- **Date**: 2026-04-27
-- **Branch**: testing/senja
+Tester: Senja (Member C)
+Test environment: Local development (http://localhost:3000)
+Tools: Postman, Prisma Studio
 
-### Description
-`src/app.ts` imports `./routes/auth.routes.js`, but the actual file `src/routes/auth.routes.ts` does not exist. Only `user.routes.ts` exists in `src/routes/`.
+---
 
-### Steps to reproduce
-1. Clone the repo
-2. Look in `src/routes/` — only one file
-3. Look in `src/app.ts` — two route imports
+## BUG-001: Server crashes on startup when auth.routes.ts is missing
+Endpoint: N/A (server startup)
+Severity: High
+Status: Resolved (caused by accidental local changes; reverted with git checkout)
 
-### Expected
-Either the file should exist, or the import should be removed.
+Steps to reproduce:
+1. Have an app.ts that imports `./routes/auth.routes.js`
+2. Run `npm run dev`
+3. Server crashes with "Cannot find module './routes/auth.routes.js'"
 
-### Notes
-- Login and register are currently inside `user.routes.ts` (paths `/api/users/register`, `/api/users/login`).
-- Team needs to decide if auth routes should live separately.
+Notes: Auth routes are actually under user.routes.ts (mounted at /api/users). The endpoints are /api/users/register, /api/users/login, /api/users/me.
 
-## BUG-002: Register response leaks password hash
-- **Severity**: Medium (security best practice)
-- **Endpoint**: POST /api/users/register
-- **Date**: 2026-04-27
+---
 
-### Description
-The register response includes the `password` field (bcrypt hash). 
-Even though the hash itself is hard to crack, APIs should never return 
-password fields. It's an information leak that helps attackers.
+## BUG-002: Register endpoint returns 500 when email is missing
+Endpoint: POST /api/users/register
+Severity: Medium
 
-### Reproduce
-1. POST /api/users/register with valid body
-2. Look at the 201 response — `password` field is present
+Steps to reproduce:
+1. POST /api/users/register with body `{"password": "secret123"}` (no email)
+2. Expected: 400 Bad Request with a clear validation error
+3. Actual: 500 Internal Server Error — `{"message": "Register failed"}`
 
-### Suggested fix
-In user.controller.ts, before returning the user, exclude password.
-With Prisma you can use `select` or destructure it out:
-   const { password: _, ...userWithoutPassword } = user;
-   res.status(201).json(userWithoutPassword);
+Recommended fix: Add input validation that returns 400 with a message like "email is required".
 
-## BUG-003: Missing input validation on register endpoint
-- **Severity**: Medium-High
-- **Endpoint**: POST /api/users/register
-- **Found by**: Senja (Member C)
-- **Date**: 2026-04-27
+---
 
-### Description
-Sending a request with missing required fields returns 500 Internal Server Error 
-with a vague "Register failed" message, instead of a proper 400 Bad Request 
-with a clear validation message.
+## BUG-003: Register endpoint returns 500 when body is empty
+Endpoint: POST /api/users/register
+Severity: Medium
 
-### Steps to reproduce
-1. POST http://localhost:3000/api/users/register
-2. Body (raw, JSON):
-   {
-     "password": "test123",
-     "name": "Test"
-   }
-3. Send
+Steps to reproduce:
+1. POST /api/users/register with empty body `{}`
+2. Expected: 400 Bad Request
+3. Actual: 500 Internal Server Error — `{"message": "Register failed"}`
 
-### Actual
-- Status: 500 Internal Server Error
-- Body: {"message": "Register failed"}
+Recommended fix: Validate that both email and password are present before hitting the database.
 
-### Expected
-- Status: 400 Bad Request
-- Body: {"message": "Email is required"} (or similar specific message)
+---
 
-### Why this matters
-- 500 status codes indicate server bugs, not client mistakes. This makes 
-  it impossible for the frontend to distinguish between user input errors 
-  (which should show a friendly message) and real server failures (which 
-  should show "something went wrong, try again").
-- The generic "Register failed" message gives the frontend nothing useful 
-  to show the user.
+## BUG-004: Register accepts invalid email format
+Endpoint: POST /api/users/register
+Severity: Low
 
-### Suggested fix
-Add input validation to the register controller (or use a validation library 
-like Zod or express-validator). Validate that:
-- email is present, is a string, and matches an email format
-- password is present, is a string, and meets minimum length
-- name is present and is a string
+Steps to reproduce:
+1. POST /api/users/register with body `{"email": "notanemail", "password": "secret123"}`
+2. Expected: 400 Bad Request — "invalid email format"
+3. Actual: 201 Created — user created with email = "notanemail"
 
-Return 400 with a specific message for each missing/invalid field.
+Recommended fix: Validate email format with a regex or library like `validator`.
+
+---
+
+## BUG-005: Register accepts very weak passwords (1 character)
+Endpoint: POST /api/users/register
+Severity: Low
+
+Steps to reproduce:
+1. POST /api/users/register with body `{"email": "weak@test.com", "password": "a"}`
+2. Expected: 400 Bad Request
+3. Actual: 201 Created — user created with a 1-character password
+
+Recommended fix: Enforce a minimum password length (at least 8 characters).
+
+---
+
+## BUG-006: Valid JWT token rejected as Unauthorized on /api/registrations
+Endpoint: POST /api/registrations
+Severity: High (blocks registration testing)
+
+Steps to reproduce:
+1. POST /api/users/login with valid credentials → returns 200 OK with JWT token
+2. POST /api/registrations with `Authorization: Bearer <token>` and body `{"eventId": 1}`
+3. Expected: 201 Created
+4. Actual: 401 Unauthorized — `{"message": "Unauthorized"}`
+
+Notes:
+- The same token works on GET /api/users/me (returns 200 OK)
+- Token was freshly generated from /api/users/login
+- Issue may be in the registration route's auth middleware import
+
+Impact: Cannot test any authenticated registration endpoints (R.1, R.5–R.9 all blocked).
+
+Recommended fix: Verify authMiddleware import in src/routes/registration.routes.ts matches the one in user.routes.ts. Confirm JWT_SECRET is consistent.
+
+---
+
+## Summary
+
+| Bug ID | Endpoint | Severity | Status |
+|--------|----------|----------|--------|
+| BUG-001 | Server startup | High | Resolved |
+| BUG-002 | POST /api/users/register | Medium | Open |
+| BUG-003 | POST /api/users/register | Medium | Open |
+| BUG-004 | POST /api/users/register | Low | Open |
+| BUG-005 | POST /api/users/register | Low | Open |
+| BUG-006 | POST /api/registrations | High | Open |

@@ -17,7 +17,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "{\"email\": \"test@test.com\", \"password\": \"test123\", \"name\": \"Test\"}"
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -35,7 +35,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \"email\": \"test@test.com\",\\n  \"password\": \"test123\",\\n  \"name\": \"Test\"\\n}",
+              "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"test123\",\n  \"name\": \"Test\"\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -43,7 +43,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:3000/api/auth/register",
+              "raw": "http://localhost:3000/api/users/register",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -51,7 +51,7 @@
               "port": "3000",
               "path": [
                 "api",
-                "auth",
+                "users",
                 "register"
               ]
             }
@@ -139,7 +139,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:3000/api/auth/register",
+              "raw": "http://localhost:3000/api/users/register",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -147,7 +147,7 @@
               "port": "3000",
               "path": [
                 "api",
-                "auth",
+                "users",
                 "register"
               ]
             }
@@ -161,7 +161,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "{\"email\": \"test@test.com\", \"password\": \"test123\", \"name\": \"Test\"}"
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -179,7 +179,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \"email\": \"test@test.com\",\\n  \"password\": \"test123\",\\n  \"name\": \"Test\"\\n}",
+              "raw": "{\r\n  \"email\": \"shortpass@test.com\",\r\n  \"password\": \"1\",\r\n  \"name\": \"Short\"\r\n}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -187,7 +187,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:3000/api/auth/register",
+              "raw": "http://localhost:3000/api/users/register",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -195,7 +195,7 @@
               "port": "3000",
               "path": [
                 "api",
-                "auth",
+                "users",
                 "register"
               ]
             }
@@ -209,7 +209,7 @@
               "listen": "prerequest",
               "script": {
                 "exec": [
-                  "{\"email\": \"test@test.com\", \"password\": \"test123\", \"name\": \"Test\"}"
+                  ""
                 ],
                 "type": "text/javascript",
                 "packages": {},
@@ -227,7 +227,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\\n  \"email\": \"test@test.com\",\\n  \"password\": \"test123\",\\n  \"name\": \"Test\"\\n}",
+              "raw": "{}",
               "options": {
                 "raw": {
                   "language": "json"
@@ -235,7 +235,7 @@
               }
             },
             "url": {
-              "raw": "http://localhost:3000/api/auth/register",
+              "raw": "http://localhost:3000/api/users/register",
               "protocol": "http",
               "host": [
                 "localhost"
@@ -243,7 +243,7 @@
               "port": "3000",
               "path": [
                 "api",
-                "auth",
+                "users",
                 "register"
               ]
             }
@@ -297,6 +297,131 @@
             }
           },
           "response": []
+        },
+        {
+          "name": "Login User",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "if (json.token) {\r",
+                  "    pm.environment.set(\"token\", json.token);\r",
+                  "    console.log(\"Token saved to environment:\", json.token.substring(0, 20) + \"...\");\r",
+                  "}\r",
+                  "\r",
+                  "if (json.user && json.user.id) {\r",
+                  "    pm.environment.set(\"userId\", json.user.id);\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"test@test.com\",\r\n  \"password\": \"test123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/login",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "users",
+                "login"
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get My Profile",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status is 200\", function () {\r",
+                  "    pm.response.to.have.status(200);\r",
+                  "});\r",
+                  "\r",
+                  "const json = pm.response.json();\r",
+                  "\r",
+                  "if (json.token) {\r",
+                  "    pm.environment.set(\"token\", json.token);\r",
+                  "    console.log(\"Token saved to environment:\", json.token.substring(0, 20) + \"...\");\r",
+                  "}\r",
+                  "\r",
+                  "if (json.user && json.user.id) {\r",
+                  "    pm.environment.set(\"userId\", json.user.id);\r",
+                  "}"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "disableBodyPruning": true
+          },
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "GET",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\r\n  \"email\": \"test@test.com\",\r\n  \"password\": \"test123\"\r\n}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/users/me",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "users",
+                "me"
+              ]
+            }
+          },
+          "response": []
         }
       ]
     },
@@ -306,7 +431,47 @@
     },
     {
       "name": "Registrations",
-      "item": []
+      "item": [
+        {
+          "name": "Register for event",
+          "request": {
+            "auth": {
+              "type": "bearer",
+              "bearer": [
+                {
+                  "key": "token",
+                  "value": "{{token}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"eventId\": 1}",
+              "options": {
+                "raw": {
+                  "language": "json"
+                }
+              }
+            },
+            "url": {
+              "raw": "http://localhost:3000/api/registrations",
+              "protocol": "http",
+              "host": [
+                "localhost"
+              ],
+              "port": "3000",
+              "path": [
+                "api",
+                "registrations"
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
     }
   ]
 }
