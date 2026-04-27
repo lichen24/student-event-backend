@@ -1,45 +1,82 @@
-import { PrismaClient } from "@prisma/client"
+import { Request, Response } from "express";
+import { PrismaClient } from "@prisma/client";
 
-const prisma = new PrismaClient()
+const prisma = new PrismaClient();
 
-export const registerForEvent = async (req, res) => {
+interface AuthedRequest extends Request {
+  user?: { id: number };
+}
+
+export const registerForEvent = async (req: AuthedRequest, res: Response) => {
   try {
-    const userId = req.user.id
-    const { eventId } = req.body
+    const userId = req.user?.id;
+    const { eventId } = req.body;
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+    if (!eventId) return res.status(400).json({ message: "eventId is required" });
 
     const event = await prisma.event.findUnique({
-      where: { id: Number(eventId) }
-    })
+      where: { id: eventId }
+    });
+    if (!event) return res.status(404).json({ message: "Event not found" });
 
-    if (!event) {
-      return res.status(404).json({ message: "Event not found" })
-    }
+    // Estä duplikaatti
+    const existing = await prisma.registration.findUnique({
+      where: { userId_eventId: { userId, eventId } }
+    });
+    if (existing) return res.status(400).json({ message: "Already registered" });
 
-    const existing = await prisma.registration.findFirst({
-      where: {
-        userId,
-        eventId: Number(eventId)
-      }
-    })
+    // Luo ilmoittautuminen
+    await prisma.registration.create({
+      data: { userId, eventId }
+    });
 
-    if (existing) {
-      return res.status(409).json({ message: "Already registered" })
-    }
-
-    const registration = await prisma.registration.create({
-      data: {
-        userId,
-        eventId: Number(eventId)
-      }
-    })
-
-    res.status(201).json({
-      message: "Registered successfully",
-      registration
-    })
-
-  } catch (error) {
-    console.error(error)
-    res.status(500).json({ message: "Server error" })
+    return res.status(201).json({ message: "Registration successful" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
   }
-}
+};
+
+export const cancelRegistration = async (req: AuthedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    const registrationId = Number(req.params.id);
+
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const registration = await prisma.registration.findFirst({
+      where: { id: registrationId, userId }
+    });
+
+    if (!registration) {
+      return res.status(404).json({ message: "Registration not found" });
+    }
+
+    await prisma.registration.delete({
+      where: { id: registrationId }
+    });
+
+    return res.json({ message: "Registration cancelled" });
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const getMyRegistrations = async (req: AuthedRequest, res: Response) => {
+  try {
+    const userId = req.user?.id;
+    if (!userId) return res.status(401).json({ message: "Unauthorized" });
+
+    const registrations = await prisma.registration.findMany({
+      where: { userId },
+      include: { event: true }
+    });
+
+    return res.json(registrations);
+  } catch (err) {
+    console.error(err);
+    return res.status(500).json({ message: "Internal server error" });
+  }
+};
