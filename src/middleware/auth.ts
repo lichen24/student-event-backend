@@ -20,11 +20,12 @@ export const authMiddleware = (
     const token = authHeader.split(" ")[1];
 
     const decoded = jwt.verify(
-      token as string,
+      token,
       process.env.JWT_SECRET as string
-    );
+    ) as { id: number };
 
-    req.user = decoded;
+    // VAIN id tallennetaan → controller toimii
+    req.user = { id: decoded.id };
 
     next();
   } catch (error) {

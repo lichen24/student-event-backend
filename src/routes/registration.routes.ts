@@ -4,7 +4,7 @@ import {
   cancelRegistration,
   getMyRegistrations
 } from "../controllers/registration.controller.js";
-import { authMiddleware } from "../middleware/auth.middleware.js";
+import { authMiddleware } from "../middleware/auth.js";
 
 const router = Router();
 
