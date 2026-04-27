@@ -18,13 +18,17 @@ export const authMiddleware = (
     }
 
     const token = authHeader.split(" ")[1];
+    if (!token) {
+      return res.status(401).json({ message: "Invalid token" });
+    }
 
-    const decoded = jwt.verify(
-      token,
-      process.env.JWT_SECRET as string
-    ) as { id: number };
+    const secret = process.env.JWT_SECRET;
+    if (!secret) {
+      throw new Error("JWT_SECRET is missing");
+    }
 
-    // VAIN id tallennetaan → controller toimii
+    const decoded = jwt.verify(token, secret) as unknown as { id: number };
+
     req.user = { id: decoded.id };
 
     next();
