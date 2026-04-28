@@ -1,6 +1,6 @@
 import express from "express";
-import userRoutes from "./routes/user.routes";
-import eventRoutes from "./routes/event.routes";
+import userRoutes from "./routes/user.routes.js";
+import eventRoutes from "./routes/event.routes.js";
 
 
 const app = express();
