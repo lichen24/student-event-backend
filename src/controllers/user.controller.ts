@@ -5,6 +5,14 @@ import { PrismaClient } from "@prisma/client";
 
 const prisma = new PrismaClient();
 
+interface AuthedRequest extends Request {
+  user?: {
+    userId: number;
+    role: string;
+  };
+}
+
+//REGISTER
 export const register = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -32,7 +40,7 @@ export const register = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Register failed" });
   }
 };
-
+//LOGIN
 export const login = async (req: Request, res: Response) => {
   try {
     const { email, password } = req.body;
@@ -72,11 +80,17 @@ export const login = async (req: Request, res: Response) => {
     res.status(500).json({ message: "Login failed" });
   }
 };
-
-export const getMe = async (req: any, res: Response) => {
+//GET ME
+export const getMe = async (req: AuthedRequest, res: Response) => {
   try {
+    const userId = req.user?.userId;
+
+    if (!userId) {
+      return res.status(401).json({ message: "Unauthorized" });
+    }
+
     const user = await prisma.user.findUnique({
-      where: { id: req.user.userId },
+      where: { id: userId },
       select: {
         id: true,
         email: true,
@@ -84,8 +98,13 @@ export const getMe = async (req: any, res: Response) => {
       },
     });
 
-    res.json(user);
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    return res.json(user);
   } catch (error) {
-    res.status(500).json({ message: "Failed to get profile" });
+    console.error(error);
+    return res.status(500).json({ message: "Failed to get profile" });
   }
 };
