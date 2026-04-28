@@ -26,7 +26,8 @@ jobs:
           --health-retries=5
 
     env:
-      DATABASE_URL: postgresql://postgres:123456@localhost:5432/eventdb
+      DATABASE_URL: postgresql://postgres:123456@localhost:5432/eventdb?schema=public
+      JWT_SECRET: testsecret
 
     steps:
       - name: Checkout repository
@@ -39,6 +40,15 @@ jobs:
 
       - name: Install dependencies
         run: npm install
+
+      - name: Wait for DB
+        run: |
+          for i in {1..10}; do
+            nc -z localhost 5432 && echo "DB ready" && exit 0
+            echo "Waiting for DB..."
+            sleep 3
+          done
+          exit 1
 
       - name: Generate Prisma Client
         run: npx prisma generate
