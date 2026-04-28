@@ -8,7 +8,7 @@ const app = express();
 
 app.use(express.json());
 
-app.use("/events", eventRoutes);
+app.use("/api/events", eventRoutes);
 
 app.use("/api/users", userRoutes);
 app.use("/api/registrations", registrationRoutes);
