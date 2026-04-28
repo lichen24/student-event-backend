@@ -4,10 +4,10 @@ import { EventController } from "../controllers/event.controller";
 const router = Router();
 const controller = new EventController();
 
-router.post("/", controller.createEvent);
-router.get("/", controller.getAllEvents);
-router.get("/:id", controller.getEventById);
-router.put("/:id", controller.updateEvent);
-router.delete("/:id", controller.deleteEvent);
+router.post("/", controller.createEvent.bind(controller));
+router.get("/", controller.getAllEvents.bind(controller));
+router.get("/:id", controller.getEventById.bind(controller));
+router.put("/:id", controller.updateEvent.bind(controller));
+router.delete("/:id", controller.deleteEvent.bind(controller));
 
 export default router;

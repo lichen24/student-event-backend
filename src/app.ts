@@ -1,5 +1,5 @@
 import express from "express";
-import userRoutes from "./routes/user.routes.js";
+import userRoutes from "./routes/user.routes";
 import eventRoutes from "./routes/event.routes";
 
 
