@@ -10,5 +10,6 @@ app.use(express.json());
 app.use("/events", eventRoutes);
 
 app.use("/api/users", userRoutes);
+app.use("/api/registrations", registrationRoutes);
 
 export default app;
