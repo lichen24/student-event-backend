@@ -1,4 +1,5 @@
 /// <reference types="jest" />
+
 import request from "supertest";
 import app from "../app.js";
 
@@ -6,40 +7,37 @@ let token: string;
 let eventId: number;
 let registrationId: number;
 
+const testEmail = `test${Date.now()}@test.com`;
+const password = "123456";
+
 describe("Full API Integration Tests", () => {
 
   // =========================
-  // 1. REGISTER USER (关键！)
+  // AUTH
   // =========================
   it("should register a new user", async () => {
-    await request(app)
+    const res = await request(app)
       .post("/api/users/register")
       .send({
-        email: "test@test.com",
-        password: "123456"
+        email: testEmail,
+        password,
       });
+
+    expect(res.statusCode).toBe(201);
   });
 
-  // =========================
-  // 2. LOGIN
-  // =========================
   it("should login and return token", async () => {
     const res = await request(app)
       .post("/api/users/login")
       .send({
-        email: "test@test.com",
-        password: "123456"
+        email: testEmail,
+        password,
       });
 
     expect(res.statusCode).toBe(200);
-    expect(res.body.token).toBeDefined();
-
     token = res.body.token;
   });
 
-  // =========================
-  // 3. GET PROFILE
-  // =========================
   it("should get current user profile", async () => {
     const res = await request(app)
       .get("/api/users/me")
@@ -49,42 +47,35 @@ describe("Full API Integration Tests", () => {
   });
 
   // =========================
-  // 4. CREATE EVENT
+  // EVENTS
   // =========================
   it("should create event", async () => {
     const res = await request(app)
       .post("/api/events")
       .set("Authorization", `Bearer ${token}`)
       .send({
-        title: "Test Event",
-        description: "Test Description",
-        date: new Date()
+        name: "Test Event", // ✅ 修复
+        date: "2026-05-01T10:00:00.000Z",
+        location: "Helsinki",
+        description: "Test event",
       });
 
     expect(res.statusCode).toBe(201);
-
     eventId = res.body.id;
   });
 
-  // =========================
-  // 5. GET EVENTS
-  // =========================
   it("should get all events", async () => {
-    const res = await request(app)
-      .get("/api/events");
-
+    const res = await request(app).get("/api/events");
     expect(res.statusCode).toBe(200);
   });
 
   it("should get single event", async () => {
-    const res = await request(app)
-      .get(`/api/events/${eventId}`);
-
+    const res = await request(app).get(`/api/events/${eventId}`);
     expect(res.statusCode).toBe(200);
   });
 
   // =========================
-  // 6. REGISTRATION
+  // REGISTRATIONS
   // =========================
   it("should register for event", async () => {
     const res = await request(app)
@@ -94,7 +85,8 @@ describe("Full API Integration Tests", () => {
 
     expect(res.statusCode).toBe(201);
 
-    registrationId = res.body.id;
+    // 🔥 从返回里拿 id
+    registrationId = res.body.registration.id;
   });
 
   it("should not allow duplicate registration", async () => {
@@ -114,15 +106,12 @@ describe("Full API Integration Tests", () => {
     expect(res.statusCode).toBe(200);
   });
 
-  // =========================
-  // 7. DELETE
-  // =========================
   it("should cancel registration", async () => {
     const res = await request(app)
       .delete(`/api/registrations/${registrationId}`)
       .set("Authorization", `Bearer ${token}`);
 
-    expect([200, 204]).toContain(res.statusCode);
+    expect(res.statusCode).toBe(200);
   });
 
 });

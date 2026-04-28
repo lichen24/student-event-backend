@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthRequest extends Request {
-  user?: { userId: number; role: string };
+  user?: { userId: number };
 }
 
 export const authMiddleware = (
@@ -27,17 +27,10 @@ export const authMiddleware = (
       throw new Error("JWT_SECRET is missing");
     }
 
+    const decoded = jwt.verify(token, secret) as { userId: number };
 
-    const decoded = jwt.verify(token, secret) as {
-      userId: number;
-      role: string;
-    };
-
-    
-    req.user = {
-      userId: decoded.userId,
-      role: decoded.role,
-    };
+    // ✅ 关键：必须是 userId
+    req.user = { userId: decoded.userId };
 
     next();
   } catch (error) {
