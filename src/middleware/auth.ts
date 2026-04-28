@@ -2,7 +2,7 @@ import type { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthRequest extends Request {
-  user?: { id: number }
+  user?: { userId: number; role: string };
 }
 
 export const authMiddleware = (
@@ -27,9 +27,17 @@ export const authMiddleware = (
       throw new Error("JWT_SECRET is missing");
     }
 
-    const decoded = jwt.verify(token, secret) as unknown as { id: number };
 
-    req.user = { id: decoded.id };
+    const decoded = jwt.verify(token, secret) as {
+      userId: number;
+      role: string;
+    };
+
+    
+    req.user = {
+      userId: decoded.userId,
+      role: decoded.role,
+    };
 
     next();
   } catch (error) {

@@ -4,12 +4,12 @@ import { PrismaClient } from "@prisma/client";
 const prisma = new PrismaClient();
 
 interface AuthedRequest extends Request {
-  user?: { id: number };
+  user?: { userId: number };
 }
 
 export const registerForEvent = async (req: AuthedRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const { eventId } = req.body;
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -40,7 +40,7 @@ export const registerForEvent = async (req: AuthedRequest, res: Response) => {
 
 export const cancelRegistration = async (req: AuthedRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     const registrationId = Number(req.params.id);
 
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
@@ -66,7 +66,7 @@ export const cancelRegistration = async (req: AuthedRequest, res: Response) => {
 
 export const getMyRegistrations = async (req: AuthedRequest, res: Response) => {
   try {
-    const userId = req.user?.id;
+    const userId = req.user?.userId;
     if (!userId) return res.status(401).json({ message: "Unauthorized" });
 
     const registrations = await prisma.registration.findMany({
