@@ -29,7 +29,7 @@ export const authMiddleware = (
 
     const decoded = jwt.verify(token, secret) as { userId: number };
 
-    // ✅ 关键：必须是 userId
+    
     req.user = { userId: decoded.userId };
 
     next();
