@@ -1,8 +1,7 @@
 import express from "express";
-import userRoutes from "./routes/user.routes.js";
 import eventRoutes from "./routes/event.routes.js";
 import registrationRoutes from "./routes/registration.routes.js";
-
+import userRoutes from "./routes/user.routes.js";
 
 const app = express();
 
